@@ -19,13 +19,21 @@ export function SetupScreen({ isPolling }: SetupScreenProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Start the Local Server</CardTitle>
-          <CardDescription>
-            Run this command in your terminal to start the Apple on-device LLM proxy
-          </CardDescription>
-        </CardHeader>
+      <div className="w-full max-w-xl space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold">applefm.chat</h1>
+          <p className="text-muted-foreground">
+            A local chat interface for Apple's on-device LLM. All processing happens privately on your Mac — no data leaves your device.
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl">Start the Local Server</CardTitle>
+            <CardDescription>
+              Run this command in your terminal to connect
+            </CardDescription>
+          </CardHeader>
         <CardContent className="space-y-4">
           <button
             onClick={handleCopy}
@@ -59,7 +67,8 @@ export function SetupScreen({ isPolling }: SetupScreenProps) {
             </ul>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -3,11 +3,29 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { streamGenerate, formatMessagesAsPrompt } from "@/lib/api";
-import { processResponse } from "@/lib/apple-on-device";
+import { AdvancedSettingsPanel } from "@/components/advanced-settings";
+import { streamGenerate } from "@/lib/api";
+import { formatPrompt, processResponse } from "@/lib/apple-on-device";
+import type { AdvancedSettings } from "@/lib/settings";
 import type { Message } from "@/lib/types";
 
-export function ChatScreen() {
+interface ChatScreenProps {
+  getEffectiveSystemPrompt: () => string;
+  getEffectiveRefusalPrefixes: () => string[];
+  settingsOpen: boolean;
+  settings: AdvancedSettings;
+  onToggleSettings: (enabled: boolean) => void;
+  onSettingsChange: (settings: AdvancedSettings) => void;
+}
+
+export function ChatScreen({ 
+  getEffectiveSystemPrompt, 
+  getEffectiveRefusalPrefixes,
+  settingsOpen,
+  settings,
+  onToggleSettings,
+  onSettingsChange,
+}: ChatScreenProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -43,7 +61,7 @@ export function ChatScreen() {
     abortControllerRef.current = new AbortController();
 
     try {
-      const prompt = formatMessagesAsPrompt(newMessages);
+      const prompt = formatPrompt(newMessages, getEffectiveSystemPrompt());
       
       let fullContent = "";
       for await (const chunk of streamGenerate(prompt, abortControllerRef.current.signal)) {
@@ -60,7 +78,7 @@ export function ChatScreen() {
       }
       
       // Process response for guardrail detection
-      const processed = processResponse(fullContent);
+      const processed = processResponse(fullContent, getEffectiveRefusalPrefixes());
       if (processed.filtered) {
         setMessages((prev) => {
           const updated = [...prev];
@@ -112,7 +130,16 @@ export function ChatScreen() {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col relative">
+      {settingsOpen && (
+        <div className="absolute inset-x-0 top-0 z-10 bg-background shadow-md max-h-[calc(100%-60px)] overflow-y-auto">
+          <AdvancedSettingsPanel
+            settings={settings}
+            onToggle={onToggleSettings}
+            onSettingsChange={onSettingsChange}
+          />
+        </div>
+      )}
       <ScrollArea className="min-h-0 flex-1 p-4" ref={scrollRef}>
         <div className="mx-auto max-w-2xl space-y-4 pb-4">
           {messages.length === 0 && (
@@ -129,14 +156,14 @@ export function ChatScreen() {
               className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] min-w-0 overflow-hidden rounded-2xl px-4 py-2 ${
+                className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                   message.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted"
                 }`}
               >
                 {message.content ? (
-                  <p className="whitespace-pre-wrap break-words hyphens-auto" lang="en">{message.content}</p>
+                  <span className="block">{message.content}</span>
                 ) : (
                   <div className="flex items-center justify-center gap-1 h-5 translate-y-px">
                     <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60 animate-bounce [animation-delay:-0.3s]" />
@@ -172,7 +199,6 @@ export function ChatScreen() {
               }
             }}
             placeholder="Type a message..."
-            disabled={isStreaming}
             rows={1}
             className="flex-1 h-9 resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />

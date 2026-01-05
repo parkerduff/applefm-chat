@@ -3,15 +3,19 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { SetupScreen } from "@/components/setup-screen";
 import { ChatScreen } from "@/components/chat-screen";
+import { AdvancedSettingsButton } from "@/components/advanced-settings";
 import { checkHealth } from "@/lib/api";
 import { POLL_INTERVAL_MS, SETUP_COMMAND } from "@/lib/constants";
+import { useAdvancedSettings } from "@/lib/settings";
 import type { AppState } from "@/lib/types";
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("CONNECTING");
   const [isConnected, setIsConnected] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const hasEverConnected = useRef(false);
+  const { settings, setSettings, toggleEnabled, getEffectiveSystemPrompt, getEffectiveRefusalPrefixes } = useAdvancedSettings();
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(SETUP_COMMAND);
@@ -71,25 +75,43 @@ export default function Home() {
     <div className="flex h-screen flex-col overflow-hidden relative">
       <header className="shrink-0 flex items-center justify-between border-b px-4 py-3">
         <h1 className="text-lg font-semibold">applefm.chat</h1>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="relative flex h-2 w-2">
-            {isConnected ? (
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-            ) : (
-              <>
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
-              </>
-            )}
-          </span>
-          {isConnected ? "Connected" : "Disconnected"}
+        <div className="flex items-center gap-3">
+          <AdvancedSettingsButton onClick={() => setSettingsOpen(!settingsOpen)} isOpen={settingsOpen} />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="relative flex h-2 w-2">
+              {isConnected ? (
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              ) : (
+                <>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                </>
+              )}
+            </span>
+            {isConnected ? "Connected" : "Disconnected"}
+          </div>
         </div>
       </header>
       <main className="min-h-0 flex-1">
-        <ChatScreen />
+        <ChatScreen
+          getEffectiveSystemPrompt={getEffectiveSystemPrompt}
+          getEffectiveRefusalPrefixes={getEffectiveRefusalPrefixes}
+          settingsOpen={settingsOpen}
+          settings={settings}
+          onToggleSettings={toggleEnabled}
+          onSettingsChange={setSettings}
+        />
       </main>
       <footer className="shrink-0 border-t px-4 py-2 text-center text-xs text-muted-foreground">
-        Not affiliated with Apple Inc. All processing happens locally on your device.
+        Powered by{" "}
+        <a href="https://github.com/parkerduff/apple-local-llm" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+          apple-local-llm
+        </a>
+        {" · "}
+        <a href="https://github.com/parkerduff/applefm-chat" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+          Source
+        </a>
+        {" · Not affiliated with Apple Inc."}
       </footer>
       
       {!isConnected && (

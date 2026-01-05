@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "applefm.chat",
-  description: "Chat with Apple's on-device LLM locally on your Mac",
+  description: "Local AI chat powered by Apple's on-device LLM",
 };
 
 export default function RootLayout({

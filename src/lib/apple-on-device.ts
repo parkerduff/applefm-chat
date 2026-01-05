@@ -15,7 +15,7 @@ export const SYSTEM_PROMPT = `You are an expert assistant focused on precise, fa
  * Refusal patterns that indicate Apple's guardrails were triggered.
  * The on-device model returns these phrases when content is filtered.
  */
-const REFUSAL_PREFIXES = [
+export const DEFAULT_REFUSAL_PREFIXES = [
   "Sorry, I",
   "Sorry, but",
   "I'm sorry, I",
@@ -23,14 +23,14 @@ const REFUSAL_PREFIXES = [
   "I apologize, but",
   "I can't help with",
   "I'm not able to",
-] as const;
+];
 
 /**
  * Check if a response indicates the model refused due to guardrails.
  */
-export function isGuardrailRefusal(content: string): boolean {
+export function isGuardrailRefusal(content: string, prefixes: string[] = DEFAULT_REFUSAL_PREFIXES): boolean {
   const trimmed = content.trim();
-  return REFUSAL_PREFIXES.some((prefix) => trimmed.startsWith(prefix));
+  return prefixes.some((prefix) => trimmed.startsWith(prefix));
 }
 
 /**
@@ -49,14 +49,14 @@ export const BLOCKED_RESPONSE = "I'm sorry, I can't assist with that.";
  * Format conversation messages into a prompt for the apple-on-device model.
  * Filters out messages that triggered content filtering.
  */
-export function formatPrompt(messages: Message[]): string {
+export function formatPrompt(messages: Message[], systemPrompt: string = SYSTEM_PROMPT): string {
   if (messages.length === 0) return "";
 
   // Filter out messages that triggered content filter
   const validMessages = messages.filter((msg) => !msg.filtered);
   if (validMessages.length === 0) return "";
 
-  const parts: string[] = [SYSTEM_PROMPT, ""];
+  const parts: string[] = [systemPrompt, ""];
 
   for (const msg of validMessages) {
     if (msg.role === "user") {
@@ -76,7 +76,7 @@ export function formatPrompt(messages: Message[]): string {
  * Process a completed response, detecting guardrail triggers.
  * Returns the content and whether it was filtered.
  */
-export function processResponse(content: string): {
+export function processResponse(content: string, refusalPrefixes: string[] = DEFAULT_REFUSAL_PREFIXES): {
   content: string;
   filtered: boolean;
 } {
@@ -84,7 +84,7 @@ export function processResponse(content: string): {
     return { content: BLOCKED_RESPONSE, filtered: true };
   }
 
-  if (isGuardrailRefusal(content)) {
+  if (isGuardrailRefusal(content, refusalPrefixes)) {
     return { content, filtered: true };
   }
 

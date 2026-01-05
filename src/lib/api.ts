@@ -23,7 +23,7 @@ export async function* streamGenerate(
   const response = await fetch(GENERATE_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, stream: true }),
+    body: JSON.stringify({ input: prompt, stream: true }),
     signal,
   });
 
