@@ -73,9 +73,19 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden relative">
-      <header className="shrink-0 flex items-center justify-between border-b px-4 py-3">
+      <header className="shrink-0 grid grid-cols-3 items-center border-b px-4 py-3">
         <h1 className="text-lg font-semibold">applefm.chat</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex justify-center">
+          <a
+            href="https://github.com/parkerduff/applefm-chat/releases/latest/download/ChatFM-arm64.dmg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            Get the desktop app
+          </a>
+        </div>
+        <div className="flex items-center justify-end gap-3">
           <AdvancedSettingsButton onClick={() => setSettingsOpen(!settingsOpen)} isOpen={settingsOpen} />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="relative flex h-2 w-2">
