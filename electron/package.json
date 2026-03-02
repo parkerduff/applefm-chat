@@ -10,6 +10,7 @@
     "preview": "electron-vite preview",
     "start": "electron-vite preview",
     "package": "electron-builder --mac --config",
+    "dist": "electron-vite build && electron-builder --mac --config",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
